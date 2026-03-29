@@ -6,7 +6,7 @@ require('dotenv').config()
 
 const apiKey = process.env.API_KEY
 
-const API_KEY = process.env.GROQ_API_KEY || apiKey;
+const API_KEY =  apiKey;
 const PORT = 3000;
 
 const MIME = {
