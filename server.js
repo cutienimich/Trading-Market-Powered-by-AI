@@ -2,8 +2,11 @@ const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config()
 
-const API_KEY = process.env.GROQ_API_KEY || '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';
+const apiKey = process.env.API_KEY
+
+const API_KEY = process.env.GROQ_API_KEY || apiKey;
 const PORT = 3000;
 
 const MIME = {
