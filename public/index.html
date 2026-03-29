@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ForexMind AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg0:#050c18;--bg1:#091225;--bg2:#0e1d36;--bg3:#152849;
+  --border:#1c3050;--border2:#243d66;
+  --text:#c8d8f0;--text2:#7a9cc8;--text3:#3d5a80;
+  --cyan:#00d4ff;--cyan2:#00a8cc;
+  --green:#00e5a0;--red:#ff4d6d;--amber:#ffb703;--purple:#9b72ff;
+}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg0);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+.app{display:flex;flex-direction:column;flex:1}
+
+/* TOP BAR */
+.topbar{background:var(--bg1);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;flex-shrink:0}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--cyan),var(--cyan2));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#050c18;font-weight:700}
+.brand-name{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;letter-spacing:1.5px}
+.brand-name em{color:var(--cyan);font-style:normal}
+.live-dot{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);letter-spacing:1px}
+.live-dot::before{content:'';width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* PAIRS BAR */
+.pairs-bar{background:var(--bg1);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;gap:16px;overflow-x:auto;flex-shrink:0}
+.pair{display:flex;flex-direction:column;gap:1px;cursor:pointer;padding:5px 10px;border-radius:7px;transition:.15s;border:1px solid transparent;flex-shrink:0}
+.pair:hover,.pair.sel{background:var(--bg2);border-color:var(--border2)}
+.pair.sel .pair-name{color:var(--cyan)}
+.pair-name{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;color:var(--text2)}
+.pair-row{display:flex;align-items:center;gap:6px}
+.pair-price{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text)}
+.pair-chg{font-family:'JetBrains Mono',monospace;font-size:10px}
+.up{color:var(--green)}.down{color:var(--red)}
+
+/* LAYOUT */
+.layout{display:flex;flex:1;overflow:hidden}
+
+/* LEFT NAV */
+.leftnav{width:190px;background:var(--bg1);border-right:1px solid var(--border);padding:14px 10px;display:flex;flex-direction:column;gap:2px;flex-shrink:0;overflow-y:auto}
+.nav-sec{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;padding:10px 8px 4px}
+.nav-btn{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;border:none;background:none;color:var(--text2);font-family:'Space Grotesk',sans-serif;font-size:12px;cursor:pointer;transition:.15s;width:100%;text-align:left}
+.nav-btn:hover{background:var(--bg2);color:var(--text)}
+.nav-btn.act{background:rgba(0,212,255,.08);color:var(--cyan);border:1px solid rgba(0,212,255,.15)}
+.nav-ic{width:16px;text-align:center;font-size:13px}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg1);flex-shrink:0}
+.tab{padding:11px 20px;font-size:12px;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:.15s;white-space:nowrap}
+.tab:hover{color:var(--text)}
+.tab.act{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+/* CHAT */
+.chat-panel{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.msgs{flex:1;padding:18px;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+.msg{display:flex;gap:10px;animation:fadein .3s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{flex-direction:row-reverse}
+.av{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;flex-shrink:0}
+.av.ai{background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.2);color:var(--cyan)}
+.av.u{background:rgba(155,114,255,.1);border:1px solid rgba(155,114,255,.2);color:var(--purple)}
+.bub{max-width:78%;padding:10px 14px;border-radius:10px;font-size:13px;line-height:1.65}
+.msg.ai .bub{background:var(--bg2);border:1px solid var(--border2);color:var(--text)}
+.msg.user .bub{background:rgba(155,114,255,.08);border:1px solid rgba(155,114,255,.2);color:#c9bfff}
+
+.info-card{background:var(--bg0);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:11px}
+.ic-head{font-size:9px;color:var(--cyan);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.ic-row{display:flex;justify-content:space-between;padding:3px 0;color:var(--text2)}
+.ic-row b{color:var(--text);font-weight:400}
+.ic-row .bull{color:var(--green)}.ic-row .bear{color:var(--red)}.ic-row .neu{color:var(--amber)}
+
+.qp-wrap{padding:0 18px 10px;display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0}
+.qp{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);background:var(--bg2);border:1px solid var(--border2);padding:5px 10px;border-radius:5px;cursor:pointer;transition:.15s}
+.qp:hover{border-color:rgba(0,212,255,.4);color:var(--cyan);background:rgba(0,212,255,.06)}
+
+.inp-area{padding:10px 18px 14px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end;flex-shrink:0}
+.inp-wrap{flex:1}
+textarea.inp{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:9px 13px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:13px;outline:none;resize:none;transition:.15s;line-height:1.5}
+textarea.inp:focus{border-color:rgba(0,212,255,.4)}
+textarea.inp::placeholder{color:var(--text3)}
+.send{background:var(--cyan);border:none;border-radius:8px;width:38px;height:38px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s;font-size:16px;color:var(--bg0);font-weight:700}
+.send:hover{background:#33ddff;transform:scale(1.05)}
+.send:disabled{background:var(--bg2);color:var(--text3);cursor:not-allowed;transform:none}
+.disc{font-size:10px;color:var(--text3);text-align:center;padding:2px 18px 10px;font-family:'JetBrains Mono',monospace;flex-shrink:0}
+
+.typing-bub{display:flex;gap:4px;align-items:center;padding:2px 0}
+.td{width:5px;height:5px;background:var(--cyan);border-radius:50%;animation:tb 1.2s infinite}
+.td:nth-child(2){animation-delay:.2s}.td:nth-child(3){animation-delay:.4s}
+@keyframes tb{0%,60%,100%{transform:translateY(0);opacity:.3}30%{transform:translateY(-5px);opacity:1}}
+
+/* CHART PANEL */
+.chart-panel{display:none;flex-direction:column;flex:1;overflow:hidden}
+.chart-panel.show{display:flex}
+.chart-toolbar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--bg1);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.chart-toolbar-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:1px;margin-right:4px}
+.tf-btn{font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer;transition:.15s}
+.tf-btn:hover{background:var(--bg2);color:var(--text)}
+.tf-btn.act{background:rgba(0,212,255,.1);color:var(--cyan);border-color:rgba(0,212,255,.3)}
+.pair-select{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:4px 10px;border-radius:5px;outline:none;cursor:pointer}
+.chart-wrap{flex:1;position:relative;overflow:hidden}
+.chart-wrap iframe{width:100%;height:100%;border:none;display:block}
+
+/* LEARN */
+.panel{display:none;flex:1;padding:18px;overflow-y:auto}
+.panel.show{display:block}
+.learn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.learn-card{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:14px;cursor:pointer;transition:.15s}
+.learn-card:hover{border-color:rgba(0,212,255,.3);background:var(--bg3)}
+.lc-icon{font-size:20px;margin-bottom:8px}
+.lc-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px}
+.lc-desc{font-size:11px;color:var(--text2);line-height:1.5}
+
+/* RISK */
+.risk-form{display:flex;flex-direction:column;gap:12px;max-width:460px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11px;color:var(--text2);font-family:'JetBrains Mono',monospace;letter-spacing:.5px}
+.field input{background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:9px 12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;transition:.15s}
+.field input:focus{border-color:rgba(0,212,255,.4)}
+.calc-btn{background:var(--cyan);color:var(--bg0);border:none;border-radius:7px;padding:11px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:.15s}
+.calc-btn:hover{background:#33ddff}
+.risk-result{background:var(--bg2);border:1px solid var(--border2);border-radius:9px;padding:14px;display:none;margin-top:4px}
+.risk-result.show{display:block}
+.rr-title{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
+.rr-row{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border);color:var(--text2)}
+.rr-row:last-child{border-bottom:none}
+.rr-row span:last-child{color:var(--text)}
+.rr-row .warn{color:var(--amber)}.rr-row .good{color:var(--green)}.rr-row .bad{color:var(--red)}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-icon">◈</div>
+      <div class="brand-name"><em>FOREX</em>MIND AI</div>
+    </div>
+    <div class="live-dot">MARKET OPEN</div>
+  </div>
+
+  <div class="pairs-bar">
+    <div class="pair sel" onclick="selectPair(this,'EUR/USD','EURUSD',1.0821,4,'+0.19%','up')">
+      <div class="pair-name">EUR/USD</div>
+      <div class="pair-row"><span class="pair-price" id="p0">1.0821</span><span class="pair-chg up" id="c0">+0.19%</span></div>
+    </div>
+    <div class="pair" onclick="selectPair(this,'GBP/USD','GBPUSD',1.2963,4,'-0.11%','down')">
+      <div class="pair-name">GBP/USD</div>
+      <div class="pair-row"><span class="pair-price" id="p1">1.2963</span><span class="pair-chg down" id="c1">-0.11%</span></div>
+    </div>
+    <div class="pair" onclick="selectPair(this,'USD/JPY','USDJPY',149.72,2,'+0.34%','up')">
+      <div class="pair-name">USD/JPY</div>
+      <div class="pair-row"><span class="pair-price" id="p2">149.72</span><span class="pair-chg up" id="c2">+0.34%</span></div>
+    </div>
+    <div class="pair" onclick="selectPair(this,'USD/CHF','USDCHF',0.8841,4,'-0.08%','down')">
+      <div class="pair-name">USD/CHF</div>
+      <div class="pair-row"><span class="pair-price" id="p3">0.8841</span><span class="pair-chg down" id="c3">-0.08%</span></div>
+    </div>
+    <div class="pair" onclick="selectPair(this,'AUD/USD','AUDUSD',0.6274,4,'+0.27%','up')">
+      <div class="pair-name">AUD/USD</div>
+      <div class="pair-row"><span class="pair-price" id="p4">0.6274</span><span class="pair-chg up" id="c4">+0.27%</span></div>
+    </div>
+    <div class="pair" onclick="selectPair(this,'USD/CAD','USDCAD',1.3428,4,'+0.05%','up')">
+      <div class="pair-name">USD/CAD</div>
+      <div class="pair-row"><span class="pair-price" id="p5">1.3428</span><span class="pair-chg up" id="c5">+0.05%</span></div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="leftnav">
+      <div class="nav-sec">Tools</div>
+      <button class="nav-btn act" onclick="switchTab('chat',this)"><span class="nav-ic">💬</span> AI Chat</button>
+      <button class="nav-btn" onclick="switchTab('chart',this)"><span class="nav-ic">📉</span> Live Chart</button>
+      <button class="nav-btn" onclick="switchTab('learn',this)"><span class="nav-ic">📖</span> Learn</button>
+      <button class="nav-btn" onclick="switchTab('risk',this)"><span class="nav-ic">🛡</span> Risk Calc</button>
+      <div class="nav-sec">Quick Ask</div>
+      <button class="nav-btn" onclick="qp('Explain what RSI means for a beginner')"><span class="nav-ic">📊</span> RSI</button>
+      <button class="nav-btn" onclick="qp('What is MACD and how do I read it?')"><span class="nav-ic">📈</span> MACD</button>
+      <button class="nav-btn" onclick="qp('Explain support and resistance in simple terms')"><span class="nav-ic">⚡</span> S&R Levels</button>
+      <button class="nav-btn" onclick="qp('What is a pip in forex?')"><span class="nav-ic">◉</span> Pips</button>
+    </div>
+
+    <div class="main">
+      <div class="tabs">
+        <div class="tab act" id="tab-chat" onclick="switchTab('chat',this)">AI Analyst</div>
+        <div class="tab" id="tab-chart" onclick="switchTab('chart',this)">Live Chart</div>
+        <div class="tab" id="tab-learn" onclick="switchTab('learn',this)">Learn Forex</div>
+        <div class="tab" id="tab-risk" onclick="switchTab('risk',this)">Risk Calculator</div>
+      </div>
+
+      <!-- CHAT -->
+      <div class="chat-panel" id="panel-chat" style="display:flex">
+        <div class="msgs" id="msgs">
+          <div class="msg ai">
+            <div class="av ai">FX</div>
+            <div class="bub">
+              Welcome! I'm your Forex AI assistant — built for beginners. I'll help you understand <strong style="color:var(--cyan)">technical indicators, sentiment, chart patterns, and risk management</strong>.<br><br>
+              You're watching <strong id="active-pair-label" style="color:var(--cyan)">EUR/USD</strong>. Check the <strong style="color:var(--cyan)">Live Chart</strong> tab to see real-time price action!
+              <div class="info-card">
+                <div class="ic-head">EUR/USD — Current Analysis</div>
+                <div class="ic-row"><span>Trend (Daily)</span><b class="bull">▲ Bullish</b></div>
+                <div class="ic-row"><span>RSI (14)</span><b class="neu">54 — Neutral</b></div>
+                <div class="ic-row"><span>MACD</span><b class="bull">Bullish crossover</b></div>
+                <div class="ic-row"><span>Sentiment</span><b class="neu">Slightly bullish (52%)</b></div>
+                <div class="ic-row"><span>Key Support</span><b>1.0750</b></div>
+                <div class="ic-row"><span>Key Resistance</span><b>1.0900</b></div>
+              </div>
+              <br>What would you like to learn or analyze?
+            </div>
+          </div>
+        </div>
+        <div class="qp-wrap">
+          <div class="qp" onclick="qp('Analyze EUR/USD for me as a beginner')">EUR/USD overview</div>
+          <div class="qp" onclick="qp('What chart patterns should beginners look for in forex?')">Chart patterns</div>
+          <div class="qp" onclick="qp('What does current market sentiment tell us?')">Market sentiment</div>
+          <div class="qp" onclick="qp('How do I manage risk as a beginner forex trader?')">Risk management</div>
+          <div class="qp" onclick="qp('What is a good risk-reward ratio for beginners?')">Risk/reward ratio</div>
+        </div>
+        <div class="inp-area">
+          <div class="inp-wrap">
+            <textarea class="inp" id="chatInput" rows="1" placeholder="Ask anything about forex — I'll explain it clearly..." onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          </div>
+          <button class="send" id="sendBtn" onclick="sendMsg()">↑</button>
+        </div>
+        <div class="disc">Educational only · Not financial advice · Always manage your risk</div>
+      </div>
+
+      <!-- LIVE CHART -->
+      <div class="chart-panel" id="panel-chart">
+        <div class="chart-toolbar">
+          <span class="chart-toolbar-label">PAIR</span>
+          <select class="pair-select" id="chartPairSelect" onchange="updateChart()">
+            <option value="FX:EURUSD">EUR/USD</option>
+            <option value="FX:GBPUSD">GBP/USD</option>
+            <option value="FX:USDJPY">USD/JPY</option>
+            <option value="FX:USDCHF">USD/CHF</option>
+            <option value="FX:AUDUSD">AUD/USD</option>
+            <option value="FX:USDCAD">USD/CAD</option>
+          </select>
+          <span class="chart-toolbar-label" style="margin-left:12px">INTERVAL</span>
+          <button class="tf-btn" onclick="setTF(this,'1')" >1m</button>
+          <button class="tf-btn" onclick="setTF(this,'5')" >5m</button>
+          <button class="tf-btn" onclick="setTF(this,'15')">15m</button>
+          <button class="tf-btn act" onclick="setTF(this,'60')">1H</button>
+          <button class="tf-btn" onclick="setTF(this,'240')">4H</button>
+          <button class="tf-btn" onclick="setTF(this,'D')" >1D</button>
+          <button class="tf-btn" onclick="setTF(this,'W')" >1W</button>
+        </div>
+        <div class="chart-wrap" id="chartWrap"></div>
+      </div>
+
+      <!-- LEARN -->
+      <div class="panel" id="panel-learn">
+        <div class="learn-grid">
+          <div class="learn-card" onclick="qpAndSwitch('Explain what a pip is in forex and how it affects my profit and loss')">
+            <div class="lc-icon">📐</div><div class="lc-title">What is a Pip?</div>
+            <div class="lc-desc">The basic unit of price movement in forex.</div>
+          </div>
+          <div class="learn-card" onclick="qpAndSwitch('Explain RSI for a complete beginner in forex trading, with examples')">
+            <div class="lc-icon">📊</div><div class="lc-title">RSI Indicator</div>
+            <div class="lc-desc">Know when a pair is overbought or oversold.</div>
+          </div>
+          <div class="learn-card" onclick="qpAndSwitch('Explain MACD in simple terms for a forex beginner')">
+            <div class="lc-icon">📈</div><div class="lc-title">MACD Explained</div>
+            <div class="lc-desc">Find momentum and trend direction.</div>
+          </div>
+          <div class="learn-card" onclick="qpAndSwitch('What are support and resistance levels in forex? Explain with examples for beginners')">
+            <div class="lc-icon">⚡</div><div class="lc-title">Support & Resistance</div>
+            <div class="lc-desc">Price levels where market tends to reverse.</div>
+          </div>
+          <div class="learn-card" onclick="qpAndSwitch('What forex candlestick patterns should a beginner learn first?')">
+            <div class="lc-icon">🕯</div><div class="lc-title">Candlestick Patterns</div>
+            <div class="lc-desc">Read price action: doji, hammer, engulfing.</div>
+          </div>
+          <div class="learn-card" onclick="qpAndSwitch('How does market sentiment work in forex? What tools do traders use?')">
+            <div class="lc-icon">🌐</div><div class="lc-title">Market Sentiment</div>
+            <div class="lc-desc">Understand bullish vs bearish market mood.</div>
+          </div>
+          <div class="learn-card" onclick="qpAndSwitch('What is a stop loss and take profit in forex? How should a beginner use them?')">
+            <div class="lc-icon">🛡</div><div class="lc-title">Stop Loss & Take Profit</div>
+            <div class="lc-desc">Protect your capital automatically.</div>
+          </div>
+          <div class="learn-card" onclick="qpAndSwitch('What are the best forex trading sessions and when is the best time to trade?')">
+            <div class="lc-icon">🕐</div><div class="lc-title">Trading Sessions</div>
+            <div class="lc-desc">London, New York, Tokyo — when to trade.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RISK -->
+      <div class="panel" id="panel-risk">
+        <div class="risk-form">
+          <div class="field"><label>Account Balance (USD)</label><input type="number" id="r-balance" value="1000"></div>
+          <div class="field"><label>Risk Per Trade (%)</label><input type="number" id="r-risk" value="2" step="0.1"></div>
+          <div class="field"><label>Entry Price</label><input type="number" id="r-entry" value="1.0821" step="0.0001"></div>
+          <div class="field"><label>Stop Loss Price</label><input type="number" id="r-stop" value="1.0771" step="0.0001"></div>
+          <div class="field"><label>Take Profit Price</label><input type="number" id="r-tp" value="1.0921" step="0.0001"></div>
+          <button class="calc-btn" onclick="calcRisk()">Calculate Risk</button>
+          <div class="risk-result" id="risk-result">
+            <div class="rr-title">Risk Analysis</div>
+            <div class="rr-row"><span>Max Risk (USD)</span><span id="rr-maxrisk"></span></div>
+            <div class="rr-row"><span>Stop Loss (pips)</span><span id="rr-slpips"></span></div>
+            <div class="rr-row"><span>Take Profit (pips)</span><span id="rr-tppips"></span></div>
+            <div class="rr-row"><span>Risk:Reward Ratio</span><span id="rr-ratio"></span></div>
+            <div class="rr-row"><span>Suggested Lot Size</span><span id="rr-lot"></span></div>
+            <div class="rr-row"><span>Assessment</span><span id="rr-assess"></span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+let loading = false;
+let conversation = [];
+let activePair = 'EUR/USD';
+let activeTVSymbol = 'FX:EURUSD';
+let activeTF = '60';
+
+const systemPrompt = `You are ForexMind AI, a friendly and patient forex trading assistant for BEGINNERS. Help with: technical analysis (RSI, MACD, moving averages, Bollinger Bands), market sentiment, candlestick & chart patterns, and risk management. Always explain jargon in plain English. Be concise and encouraging. Structure trade analysis as: Trend → Indicators → Pattern → Sentiment → 🛡 Risk Note. Never give definitive buy/sell orders. Current date: March 2026.`;
+
+const pairData = [
+  {base:1.0821,dec:4},{base:1.2963,dec:4},{base:149.72,dec:2},
+  {base:0.8841,dec:4},{base:0.6274,dec:4},{base:1.3428,dec:4}
+];
+
+// ── CHART ────────────────────────────────────────────────
+function buildChartURL(symbol, interval) {
+  const params = new URLSearchParams({
+    symbol: symbol,
+    interval: interval,
+    theme: 'dark',
+    style: '1',
+    locale: 'en',
+    toolbar_bg: '#091225',
+    enable_publishing: '0',
+    hide_top_toolbar: '0',
+    hide_legend: '0',
+    save_image: '0',
+    backgroundColor: 'rgba(5,12,24,1)',
+    gridColor: 'rgba(28,48,80,0.5)',
+    hide_volume: '0',
+    withdateranges: '1',
+    studies: 'RSI@tv-basicstudies,MACD@tv-basicstudies',
+  });
+  return `https://www.tradingview.com/widgetembed/?${params.toString()}`;
+}
+
+function renderChart() {
+  const wrap = document.getElementById('chartWrap');
+  wrap.innerHTML = '';
+  const iframe = document.createElement('iframe');
+  iframe.src = buildChartURL(activeTVSymbol, activeTF);
+  iframe.allowFullscreen = true;
+  iframe.style.cssText = 'width:100%;height:100%;border:none;display:block';
+  wrap.appendChild(iframe);
+}
+
+function setTF(btn, tf) {
+  document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('act'));
+  btn.classList.add('act');
+  activeTF = tf;
+  renderChart();
+}
+
+function updateChart() {
+  activeTVSymbol = document.getElementById('chartPairSelect').value;
+  renderChart();
+}
+
+// ── PAIR SELECT ──────────────────────────────────────────
+const tvSymbolMap = {
+  'EUR/USD':'FX:EURUSD','GBP/USD':'FX:GBPUSD','USD/JPY':'FX:USDJPY',
+  'USD/CHF':'FX:USDCHF','AUD/USD':'FX:AUDUSD','USD/CAD':'FX:USDCAD'
+};
+
+function selectPair(el, pair, tv, base, dec, chg, dir) {
+  document.querySelectorAll('.pair').forEach(p => p.classList.remove('sel'));
+  el.classList.add('sel');
+  activePair = pair;
+  activeTVSymbol = 'FX:' + tv;
+  const lbl = document.getElementById('active-pair-label');
+  if (lbl) lbl.textContent = pair;
+  // sync chart select
+  const sel = document.getElementById('chartPairSelect');
+  if (sel) sel.value = 'FX:' + tv;
+  // re-render chart if visible
+  if (document.getElementById('panel-chart').classList.contains('show')) renderChart();
+}
+
+// ── TABS ─────────────────────────────────────────────────
+const ALL_TABS = ['chat','chart','learn','risk'];
+
+function switchTab(tab, el) {
+  ALL_TABS.forEach(t => {
+    const tabEl = document.getElementById('tab-'+t);
+    if (tabEl) tabEl.classList.remove('act');
+    if (t === 'chat') {
+      document.getElementById('panel-chat').style.display = 'none';
+    } else {
+      const p = document.getElementById('panel-'+t);
+      if (p) { p.classList.remove('show'); p.style.display = 'none'; }
+    }
+  });
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('act'));
+
+  if (tab === 'chat') {
+    document.getElementById('panel-chat').style.display = 'flex';
+  } else {
+    const p = document.getElementById('panel-'+tab);
+    if (p) { p.style.display = tab === 'chart' ? 'flex' : 'block'; p.classList.add('show'); }
+    if (tab === 'chart') renderChart();
+  }
+
+  const tabEl = document.getElementById('tab-'+tab);
+  if (tabEl) tabEl.classList.add('act');
+  if (el) el.classList.add('act');
+}
+
+// ── CHAT ─────────────────────────────────────────────────
+function qpAndSwitch(text) {
+  switchTab('chat', null);
+  document.getElementById('tab-chat').classList.add('act');
+  document.getElementById('chatInput').value = text;
+  sendMsg();
+}
+
+function qp(text) {
+  switchTab('chat', null);
+  document.getElementById('tab-chat').classList.add('act');
+  document.getElementById('chatInput').value = text;
+  sendMsg();
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+}
+
+function addMsg(role, html) {
+  const msgs = document.getElementById('msgs');
+  const d = document.createElement('div');
+  d.className = 'msg ' + role;
+  d.innerHTML = `<div class="av ${role==='ai'?'ai':'u'}">${role==='ai'?'FX':'YOU'}</div><div class="bub">${html}</div>`;
+  msgs.appendChild(d);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('msgs');
+  const d = document.createElement('div');
+  d.className = 'msg ai'; d.id = 'typing';
+  d.innerHTML = `<div class="av ai">FX</div><div class="bub"><div class="typing-bub"><div class="td"></div><div class="td"></div><div class="td"></div></div></div>`;
+  msgs.appendChild(d);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing');
+  if (t) t.remove();
+}
+
+async function sendMsg() {
+  if (loading) return;
+  const inp = document.getElementById('chatInput');
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = ''; inp.style.height = 'auto';
+
+  addMsg('user', text);
+  conversation.push({ role: 'user', content: text + ` (I'm watching ${activePair})` });
+
+  loading = true;
+  document.getElementById('sendBtn').disabled = true;
+  showTyping();
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: conversation.slice(-14)
+      })
+    });
+    const data = await res.json();
+    const reply = data.content?.find(b => b.type === 'text')?.text || 'Sorry, no response received.';
+    conversation.push({ role: 'assistant', content: reply });
+    removeTyping();
+    addMsg('ai', reply.replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>'));
+  } catch(e) {
+    removeTyping();
+    addMsg('ai', '⚠️ Error: ' + e.message);
+  }
+
+  loading = false;
+  document.getElementById('sendBtn').disabled = false;
+}
+
+// ── RISK CALC ────────────────────────────────────────────
+function calcRisk() {
+  const balance = parseFloat(document.getElementById('r-balance').value)||0;
+  const riskPct = parseFloat(document.getElementById('r-risk').value)||0;
+  const entry   = parseFloat(document.getElementById('r-entry').value)||0;
+  const stop    = parseFloat(document.getElementById('r-stop').value)||0;
+  const tp      = parseFloat(document.getElementById('r-tp').value)||0;
+  if (!balance||!riskPct||!entry||!stop||!tp) return;
+
+  const maxRisk = balance * riskPct / 100;
+  const slPips  = Math.abs(entry - stop) * 10000;
+  const tpPips  = Math.abs(tp - entry) * 10000;
+  const rr      = tpPips / slPips;
+  const lot     = maxRisk / (slPips * 10);
+
+  document.getElementById('rr-maxrisk').textContent = '$' + maxRisk.toFixed(2);
+  document.getElementById('rr-slpips').textContent  = slPips.toFixed(1) + ' pips';
+  document.getElementById('rr-tppips').textContent  = tpPips.toFixed(1) + ' pips';
+
+  const rrEl = document.getElementById('rr-ratio');
+  rrEl.textContent = '1 : ' + rr.toFixed(2);
+  rrEl.className = rr >= 2 ? 'good' : rr >= 1 ? 'warn' : 'bad';
+
+  document.getElementById('rr-lot').textContent = lot.toFixed(2) + ' lots';
+
+  const aEl = document.getElementById('rr-assess');
+  if (riskPct > 2)           { aEl.textContent='⚠️ Risk % too high'; aEl.className='bad'; }
+  else if (rr < 1)           { aEl.textContent='⚠️ Poor R:R ratio';  aEl.className='bad'; }
+  else if (rr>=2&&riskPct<=2){ aEl.textContent='✅ Good setup';       aEl.className='good';}
+  else                       { aEl.textContent='⚠️ Improve R:R';     aEl.className='warn';}
+
+  document.getElementById('risk-result').classList.add('show');
+}
+
+// ── TICKER JITTER ────────────────────────────────────────
+function jitter() {
+  pairData.forEach((p,i) => {
+    const delta = (Math.random()-.5)*p.base*0.0003;
+    p.base = Math.round((p.base+delta)*Math.pow(10,p.dec))/Math.pow(10,p.dec);
+    const el = document.getElementById('p'+i);
+    if (el) el.textContent = p.base.toFixed(p.dec);
+  });
+}
+setInterval(jitter, 2500);
+</script>
+</body>
+</html>

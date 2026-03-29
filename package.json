@@ -1,0 +1,12 @@
+{
+  "name": "forexmind-ai",
+  "version": "1.0.0",
+  "description": "ForexMind AI — Forex trading assistant powered by Claude",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
